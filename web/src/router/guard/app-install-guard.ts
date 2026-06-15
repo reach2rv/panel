@@ -1,6 +1,7 @@
 import type { Router } from 'vue-router'
 
 import app from '@/api/panel/app'
+import { $gettext } from '@/utils/gettext'
 
 // 防止重复显示错误消息
 let lastErrorMsg = ''
@@ -22,7 +23,7 @@ export function createAppInstallGuard(router: Router) {
     if (to.path.startsWith('/apps/') && slug) {
       await useRequest(app.isInstalled(slug)).onSuccess(({ data }) => {
         if (!data) {
-          showErrorMessage(`应用未安装`)
+          showErrorMessage($gettext('App is not installed'))
           return router.push({ name: 'app-index' })
         }
       })
@@ -33,7 +34,7 @@ export function createAppInstallGuard(router: Router) {
       await useRequest(app.isInstalled('nginx,openresty,apache,openlitespeed,caddy')).onSuccess(
         ({ data }) => {
           if (!data) {
-            showErrorMessage(`Web 服务器未安装`)
+            showErrorMessage($gettext('Web server is not installed'))
             return router.push({ name: 'app-index' })
           }
         },
@@ -44,7 +45,7 @@ export function createAppInstallGuard(router: Router) {
     if (to.path.startsWith('/container')) {
       await useRequest(app.isInstalled('docker,podman')).onSuccess(({ data }) => {
         if (!data) {
-          showErrorMessage(`容器引擎未安装`)
+          showErrorMessage($gettext('Container engine is not installed'))
           return router.push({ name: 'app-index' })
         }
       })

@@ -3,7 +3,7 @@ app:
   key: a-long-string-with-32-characters
   locale: en
   timezone: Asia/Kolkata
-  root: /opt/ornaverse
+  root: /opt/ace
   api_endpoint: api.acepanel.net
   download_endpoint: dl.acepanel.net
 http:

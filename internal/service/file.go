@@ -612,6 +612,13 @@ func (s *FileService) List(w http.ResponseWriter, r *http.Request) {
 	} else {
 		list, err = stdos.ReadDir(req.Path)
 		if err != nil {
+			if stdos.IsNotExist(err) {
+				Success(w, chix.M{
+					"total": 0,
+					"items": []any{},
+				})
+				return
+			}
 			Error(w, http.StatusInternalServerError, "%v", err)
 			return
 		}

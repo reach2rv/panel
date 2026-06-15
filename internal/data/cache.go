@@ -3,10 +3,13 @@ package data
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"slices"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"resty.dev/v3"
 
 	"github.com/acepanel/panel/v3/internal/app"
 	"github.com/acepanel/panel/v3/internal/biz"
@@ -87,48 +90,63 @@ func (r *cacheRepo) UpdateEnvironments() error {
 		return err
 	}
 
-	hasNet6 := false
-	hasNet8 := false
-	hasNet9 := false
-	for _, env := range *environments {
-		if env.Type == "dotnet" {
-			switch env.Slug {
-			case "6.0":
-				hasNet6 = true
-			case "8.0":
-				hasNet8 = true
-			case "9.0":
-				hasNet9 = true
+	dotnetVersions := map[string]string{
+		"6.0": "6.0.428",
+		"8.0": "8.0.112",
+		"9.0": "9.0.102",
+	}
+
+	type DotNetReleasesIndex struct {
+		ReleasesIndex []struct {
+			ChannelVersion string `json:"channel-version"`
+			LatestSdk      string `json:"latest-sdk"`
+		} `json:"releases-index"`
+	}
+
+	client := resty.New()
+	client.SetTimeout(5 * time.Second)
+	resp, err := client.R().Get("https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/releases-index.json")
+	if err == nil && resp.IsStatusSuccess() {
+		defer func() { _ = resp.Body.Close() }()
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err == nil {
+			var index DotNetReleasesIndex
+			if err := json.Unmarshal(bodyBytes, &index); err == nil {
+				for _, release := range index.ReleasesIndex {
+					if release.ChannelVersion != "" && release.LatestSdk != "" {
+						dotnetVersions[release.ChannelVersion] = release.LatestSdk
+					}
+				}
 			}
 		}
 	}
 
-	if !hasNet6 {
-		*environments = append(*environments, &api.Environment{
-			Type:        "dotnet",
-			Slug:        "6.0",
-			Name:        ".NET 6.0",
-			Version:     "6.0.36",
-			Description: ".NET 6.0 Runtime",
-		})
+	hasNet := make(map[string]bool)
+	for _, env := range *environments {
+		if env.Type == "dotnet" {
+			hasNet[env.Slug] = true
+		}
 	}
-	if !hasNet8 {
-		*environments = append(*environments, &api.Environment{
-			Type:        "dotnet",
-			Slug:        "8.0",
-			Name:        ".NET 8.0",
-			Version:     "8.0.12",
-			Description: ".NET 8.0 Runtime",
-		})
-	}
-	if !hasNet9 {
-		*environments = append(*environments, &api.Environment{
-			Type:        "dotnet",
-			Slug:        "9.0",
-			Name:        ".NET 9.0",
-			Version:     "9.0.2",
-			Description: ".NET 9.0 Runtime",
-		})
+
+	for channel, version := range dotnetVersions {
+		if channel < "6.0" {
+			continue
+		}
+		if !hasNet[channel] {
+			*environments = append(*environments, &api.Environment{
+				Type:        "dotnet",
+				Slug:        channel,
+				Name:        ".NET " + channel,
+				Version:     version,
+				Description: ".NET " + channel + " Runtime",
+			})
+		} else {
+			for _, env := range *environments {
+				if env.Type == "dotnet" && env.Slug == channel {
+					env.Version = version
+				}
+			}
+		}
 	}
 
 	encoded, err := json.Marshal(environments)

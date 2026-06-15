@@ -76,7 +76,7 @@ func newBaseVhost(configDir string) (*baseVhost, error) {
 
 // defaultConf 返回替换好站点名的默认配置模板
 func (v *baseVhost) defaultConf() string {
-	return strings.ReplaceAll(DefaultVhostConf, "/opt/ornaverse/sites/default", fmt.Sprintf("/opt/ornaverse/sites/%s", v.siteName))
+	return strings.ReplaceAll(DefaultVhostConf, "/opt/ace/sites/default", fmt.Sprintf("/opt/ace/sites/%s", v.siteName))
 }
 
 // NewStaticVhost 创建纯静态虚拟主机实例

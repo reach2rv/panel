@@ -24,7 +24,11 @@ func initGlobal(conf *config.Config) {
 		log.Fatalf("panel app key must be 32 characters")
 	}
 
-	app.Root = "/opt/ornaverse"
+	if conf.App.Root != "" {
+		app.Root = conf.App.Root
+	} else {
+		app.Root = "/opt/ace"
+	}
 	app.Locale = conf.App.Locale
 
 	// 初始化时区

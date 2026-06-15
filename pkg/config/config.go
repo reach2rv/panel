@@ -8,7 +8,7 @@ import (
 	"github.com/acepanel/panel/v3/pkg/io"
 )
 
-const configPath = "/opt/ornaverse/panel/storage/config.yml"
+const configPath = "/opt/ace/panel/storage/config.yml"
 
 // Config 面板配置结构体
 type Config struct {

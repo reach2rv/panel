@@ -8,8 +8,8 @@ set -e
 # Configuration
 # Change this to your actual GitHub username/repo
 REPO=${REPO:-"reach2rv/panel"}
-INSTALL_DIR="/opt/ornaverse/panel"
-TMP_DIR="/tmp/ornaverse_install"
+INSTALL_DIR="/opt/ace/panel"
+TMP_DIR="/tmp/ace_install"
 
 echo "================================================="
 echo "   OrnaVerse Panel Installation Script (via Releases)   "
@@ -67,13 +67,19 @@ cd "$TMP_DIR"
 curl -sSL "$DOWNLOAD_URL" -o "$FILENAME"
 unzip -q "$FILENAME"
 
-# 6. Install to /opt/ornaverse
+# 6. Install to /opt/ace
+IS_UPDATE=0
 if [ -f "$INSTALL_DIR/ace" ]; then
+    IS_UPDATE=1
     echo "==> Updating to $INSTALL_DIR..."
 else
     echo "==> Installing to $INSTALL_DIR..."
 fi
 mkdir -p "$INSTALL_DIR"
+mkdir -p "${INSTALL_DIR%/*}/projects"
+mkdir -p "${INSTALL_DIR%/*}/sites"
+mkdir -p "${INSTALL_DIR%/*}/backup"
+mkdir -p "${INSTALL_DIR%/*}/server"
 # Stop service if running to prevent Text file busy
 if systemctl is-active --quiet ornaverse; then
     echo "==> Stopping active ornaverse service for update..."
@@ -140,10 +146,13 @@ ln -sf "$INSTALL_DIR/cli" /usr/local/sbin/acepanel
 ln -sf "$INSTALL_DIR/cli" /usr/local/sbin/ornaverse
 chmod +x /usr/local/sbin/acepanel /usr/local/sbin/ornaverse
 
+
 # 9. Initialize database/settings and print connection details
-echo "==> Initializing panel database and settings..."
-/usr/local/sbin/ornaverse init || true
-/usr/local/sbin/ornaverse info
+if [ "$IS_UPDATE" -eq 0 ]; then
+    echo "==> Initializing panel database and settings..."
+    /usr/local/sbin/ornaverse init || true
+    /usr/local/sbin/ornaverse info
+fi
 
 echo "================================================="
 echo "==> Installation complete!"

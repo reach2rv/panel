@@ -80,10 +80,11 @@ if [ -d "storage" ]; then
 fi
 
 # Create default configuration if it doesn't exist
-if [ ! -f "$INSTALL_DIR/config.yml" ]; then
+if [ ! -f "$INSTALL_DIR/storage/config.yml" ]; then
     echo "==> Creating default configuration..."
+    mkdir -p "$INSTALL_DIR/storage"
     if [ -f "config.example.yml" ]; then
-        cp config.example.yml "$INSTALL_DIR/config.yml"
+        cp config.example.yml "$INSTALL_DIR/storage/config.yml"
     else
         echo "Warning: config.example.yml not found in release archive."
     fi

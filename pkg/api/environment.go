@@ -52,22 +52,23 @@ func (r *API) Environments() (*Environments, error) {
 			case "Python 运行环境":
 				env.Description = "Python runtime environment"
 			}
-			if env.Type == "php" {
+			switch env.Type {
+			case "php":
 				env.Name = fmt.Sprintf("PHP-%s", env.Slug)
 				env.Description = fmt.Sprintf("PHP-%s runtime environment", env.Slug)
-			} else if env.Type == "dotnet" {
+			case "dotnet":
 				env.Name = fmt.Sprintf(".NET %s", env.Slug)
 				env.Description = fmt.Sprintf(".NET %s runtime environment", env.Slug)
-			} else if env.Type == "go" {
+			case "go":
 				env.Name = fmt.Sprintf("Go %s", env.Slug)
 				env.Description = fmt.Sprintf("Go %s runtime environment", env.Slug)
-			} else if env.Type == "java" {
+			case "java":
 				env.Name = fmt.Sprintf("Java %s", env.Slug)
 				env.Description = fmt.Sprintf("Java %s runtime environment", env.Slug)
-			} else if env.Type == "nodejs" {
+			case "nodejs":
 				env.Name = fmt.Sprintf("Node.js %s", env.Slug)
 				env.Description = fmt.Sprintf("Node.js %s runtime environment", env.Slug)
-			} else if env.Type == "python" {
+			case "python":
 				env.Name = fmt.Sprintf("Python %s", env.Slug)
 				env.Description = fmt.Sprintf("Python %s runtime environment", env.Slug)
 			}

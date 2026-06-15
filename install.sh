@@ -70,6 +70,12 @@ unzip -q "$FILENAME"
 # 6. Install to /opt/ornaverse
 echo "==> Installing to $INSTALL_DIR..."
 mkdir -p "$INSTALL_DIR"
+# Stop service if running to prevent Text file busy
+if systemctl is-active --quiet ornaverse; then
+    echo "==> Stopping active ornaverse service for update..."
+    systemctl stop ornaverse || true
+fi
+rm -f "$INSTALL_DIR/ace" "$INSTALL_DIR/cli"
 cp ace "$INSTALL_DIR/"
 cp cli "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/ace" "$INSTALL_DIR/cli"

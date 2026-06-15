@@ -51,7 +51,9 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
-FILENAME="ornaverse-panel_linux_${ARCH}.zip"
+# Strip leading 'v' from version if present
+CLEAN_VERSION="${VERSION#v}"
+FILENAME="ornaverse-panel_${CLEAN_VERSION}_linux_${ARCH}.zip"
 DOWNLOAD_URL="https://github.com/$REPO/releases/download/$VERSION/$FILENAME"
 
 echo "==> Found version $VERSION for $ARCH"

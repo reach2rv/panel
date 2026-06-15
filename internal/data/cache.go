@@ -87,11 +87,14 @@ func (r *cacheRepo) UpdateEnvironments() error {
 		return err
 	}
 
+	hasNet6 := false
 	hasNet8 := false
 	hasNet9 := false
 	for _, env := range *environments {
 		if env.Type == "dotnet" {
-			if env.Slug == "8.0" {
+			if env.Slug == "6.0" {
+				hasNet6 = true
+			} else if env.Slug == "8.0" {
 				hasNet8 = true
 			} else if env.Slug == "9.0" {
 				hasNet9 = true
@@ -99,6 +102,15 @@ func (r *cacheRepo) UpdateEnvironments() error {
 		}
 	}
 
+	if !hasNet6 {
+		*environments = append(*environments, &api.Environment{
+			Type:        "dotnet",
+			Slug:        "6.0",
+			Name:        ".NET 6.0",
+			Version:     "6.0.36",
+			Description: ".NET 6.0 Runtime",
+		})
+	}
 	if !hasNet8 {
 		*environments = append(*environments, &api.Environment{
 			Type:        "dotnet",

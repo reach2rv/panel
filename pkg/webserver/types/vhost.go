@@ -32,7 +32,7 @@ type Vhost interface {
 	// SetIndex 设置默认首页
 	SetIndex(index []string) error
 
-	// Root 取网站根目录，如: "/opt/ace/sites/example/public"
+	// Root 取网站根目录，如: "/opt/ornaverse/sites/example/public"
 	Root() string
 	// SetRoot 设置网站根目录
 	SetRoot(root string) error
@@ -42,12 +42,12 @@ type Vhost interface {
 	// SetIncludes 设置包含的文件配置
 	SetIncludes(includes []IncludeFile) error
 
-	// AccessLog 取访问日志路径，如: "/opt/ace/sites/example/log/access.log"
+	// AccessLog 取访问日志路径，如: "/opt/ornaverse/sites/example/log/access.log"
 	AccessLog() string
 	// SetAccessLog 设置访问日志路径
 	SetAccessLog(accessLog string) error
 
-	// ErrorLog 取错误日志路径，如: "/opt/ace/sites/example/log/error.log"
+	// ErrorLog 取错误日志路径，如: "/opt/ornaverse/sites/example/log/error.log"
 	ErrorLog() string
 	// SetErrorLog 设置错误日志路径
 	SetErrorLog(errorLog string) error

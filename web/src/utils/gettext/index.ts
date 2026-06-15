@@ -10,7 +10,7 @@ export const locales = {
 
 export const gettext: any = vue3Gettext({
   availableLanguages: locales,
-  defaultLanguage: 'zh_CN',
+  defaultLanguage: 'en',
   translations: translations,
   silent: true,
 })

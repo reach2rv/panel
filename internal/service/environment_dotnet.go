@@ -41,5 +41,10 @@ func (s *EnvironmentDotnetService) SetCli(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if _, err = shell.Execf("ln -sf '%s/dotnet' '/usr/local/bin/dotnet%s'", binPath, req.Slug); err != nil {
+		Error(w, http.StatusInternalServerError, "%v", err)
+		return
+	}
+
 	Success(w, nil)
 }

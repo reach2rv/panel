@@ -4,6 +4,7 @@ import { createAlova, Method } from 'alova'
 import VueHook from 'alova/vue'
 
 import { resolveResError } from '@/utils/http/helpers'
+import { $gettext } from '@/utils/gettext'
 
 export const http = createAlova({
   id: 'panel',
@@ -38,7 +39,7 @@ export const http = createAlova({
             window.$message.error(msg)
           } else if (code !== 401 && code !== 418) {
             window.$dialog.error({
-              title: '错误',
+              title: $gettext('Error'),
               content: msg,
               maskClosable: false,
             })
@@ -56,7 +57,7 @@ export const http = createAlova({
 
       if (!noAlert) {
         window.$dialog.error({
-          title: '接口请求失败',
+          title: $gettext('API Request Failed'),
           content: errorMsg,
           maskClosable: false,
         })

@@ -1338,8 +1338,8 @@ func (r *backupRepo) FixPanel() error {
 	}
 
 	// 下载服务文件
-	if !io.Exists("/etc/systemd/system/acepanel.service") {
-		if _, err = shell.Execf(`wget -O /etc/systemd/system/acepanel.service https://%s/acepanel.service && sed -i "s|/opt/ace|%s|g" /etc/systemd/system/acepanel.service`, r.conf.App.DownloadEndpoint, app.Root); err != nil {
+	if !io.Exists("/etc/systemd/system/ornaverse.service") {
+		if _, err = shell.Execf(`wget -O /etc/systemd/system/ornaverse.service https://%s/ornaverse.service && sed -i "s|/opt/ornaverse|%s|g" /etc/systemd/system/ornaverse.service`, r.conf.App.DownloadEndpoint, app.Root); err != nil {
 			return err
 		}
 	}
@@ -1354,7 +1354,7 @@ func (r *backupRepo) FixPanel() error {
 	if err = io.Chmod(filepath.Join(app.Root, "panel", "storage", "panel.db"), 0600); err != nil {
 		return err
 	}
-	if err = io.Chmod("/etc/systemd/system/acepanel.service", 0644); err != nil {
+	if err = io.Chmod("/etc/systemd/system/ornaverse.service", 0644); err != nil {
 		return err
 	}
 	if err = io.Chmod("/usr/local/sbin/acepanel", 0700); err != nil {
@@ -1470,7 +1470,7 @@ func (r *backupRepo) UpdatePanel(version, url, checksum string) error {
 		return errors.New(r.t.Get("|-Run post-update script failed: %v", err))
 	}
 	if _, err := shell.Execf(
-		`wget -O /etc/systemd/system/acepanel.service https://%s/acepanel.service && sed -i "s|/www|%s|g" /etc/systemd/system/acepanel.service`,
+		`wget -O /etc/systemd/system/ornaverse.service https://%s/ornaverse.service && sed -i "s|/www|%s|g" /etc/systemd/system/ornaverse.service`,
 		r.conf.App.DownloadEndpoint, app.Root,
 	); err != nil {
 		return errors.New(r.t.Get("|-Download panel service file failed: %v", err))
@@ -1486,7 +1486,7 @@ func (r *backupRepo) UpdatePanel(version, url, checksum string) error {
 		fmt.Println(r.t.Get("|-Set key file permissions..."))
 	}
 	_ = io.Chmod("/usr/local/sbin/acepanel", 0700)
-	_ = io.Chmod("/etc/systemd/system/acepanel.service", 0644)
+	_ = io.Chmod("/etc/systemd/system/ornaverse.service", 0644)
 	_ = io.Chmod(filepath.Join(app.Root, "panel"), 0700)
 
 	if app.IsCli {

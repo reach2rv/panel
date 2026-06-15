@@ -4,7 +4,7 @@ msgstr ""
 
 #: src/components/common/AppFooter.vue:18
 #: src/views/home/IndexView.vue:548
-msgid "AcePanel"
+msgid "OrnaVerse Panel"
 msgstr ""
 
 #: src/components/common/AppFooter.vue:20

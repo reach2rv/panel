@@ -25,5 +25,24 @@ func (r *API) Categories() (*Categories, error) {
 		return nil, err
 	}
 
+	if r.locale == "en" {
+		for _, cat := range *categories {
+			if t, ok := CategoryTranslations[cat.Slug]; ok {
+				cat.Name = t
+			}
+		}
+	}
+
 	return categories, nil
+}
+
+var CategoryTranslations = map[string]string{
+	"website":    "Website",
+	"database":   "Database",
+	"tool":       "Tool",
+	"runtime":    "Runtime",
+	"app":        "Application",
+	"monitor":    "Monitor",
+	"deployment": "Deployment",
+	"store":      "Store",
 }

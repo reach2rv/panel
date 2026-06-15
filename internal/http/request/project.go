@@ -12,6 +12,9 @@ type ProjectCreate struct {
 	User         string            `form:"user" json:"user"`
 	Restart      string            `json:"restart"`
 	Environments []types.KV
+
+	MemoryLimit float64 `form:"memory_limit" json:"memory_limit"`
+	CPUQuota    string  `form:"cpu_quota" json:"cpu_quota"`
 }
 
 type ProjectUpdate struct {

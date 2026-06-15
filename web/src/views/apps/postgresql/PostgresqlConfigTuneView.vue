@@ -423,7 +423,7 @@ const handleSave = () => {
             />
           </n-form-item>
           <n-form-item :label="$gettext('Log Timezone (log_timezone)')">
-            <n-input v-model:value="logTimezone" :placeholder="$gettext('e.g. Asia/Shanghai')" />
+            <n-input v-model:value="logTimezone" :placeholder="$gettext('e.g. Asia/Kolkata')" />
           </n-form-item>
         </n-form>
         <n-flex>

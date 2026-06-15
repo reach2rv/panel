@@ -255,7 +255,7 @@ const composeSizeValue = (num: number | null, unit: string): string => {
             <n-select v-model:value="shortOpenTag" :options="onOffOptions" clearable />
           </n-form-item>
           <n-form-item :label="$gettext('Timezone (date.timezone)')">
-            <n-input v-model:value="dateTimezone" :placeholder="$gettext('e.g. Asia/Shanghai')" />
+            <n-input v-model:value="dateTimezone" :placeholder="$gettext('e.g. Asia/Kolkata')" />
           </n-form-item>
           <n-form-item :label="$gettext('Display Errors (display_errors)')">
             <n-select v-model:value="displayErrors" :options="onOffOptions" clearable />

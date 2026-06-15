@@ -13,9 +13,9 @@ const year = new Date().getFullYear()
         class="hover:text-brand-hover hover:underline"
         rel="noreferrer"
         target="__blank"
-        href="https://acepanel.net/"
+        href="https://ornaverse.com/"
       >
-        {{ $gettext('AcePanel') }}
+        {{ $gettext('OrnaVerse Panel') }}
       </a>
       {{ $gettext('All Rights Reserved.') }}
     </p>
@@ -33,7 +33,7 @@ const year = new Date().getFullYear()
         class="hover:text-brand-hover hover:underline"
         rel="noreferrer"
         target="_blank"
-        href="https://acepanel.net"
+        href="https://ornaverse.com"
       >
         {{ $gettext('Website') }}
       </a>
@@ -42,7 +42,7 @@ const year = new Date().getFullYear()
         class="hover:text-brand-hover hover:underline"
         rel="noreferrer"
         target="_blank"
-        href="https://tom.moe/c/technical/acepanel"
+        href="https://ornaverse.com"
       >
         {{ $gettext('Community') }}
       </a>

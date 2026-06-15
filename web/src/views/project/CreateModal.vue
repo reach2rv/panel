@@ -226,7 +226,7 @@ const generateCommand = () => {
       if (!dotnetOptions.value.version) return
       const framework = dotnetFrameworks.find((f) => f.value === dotnetOptions.value.framework)
       if (!framework || framework.value === 'custom') return
-      const dotnetBin = `dotnet${dotnetOptions.value.version}`
+      const dotnetBin = `/opt/ace/server/dotnet/${dotnetOptions.value.version}/dotnet`
       createModel.value.exec_start = `${dotnetBin} ${framework.command}`
       break
     }

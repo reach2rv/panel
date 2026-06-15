@@ -12,6 +12,7 @@ import (
 
 type API struct {
 	panelVersion string
+	locale       string
 	client       *resty.Client
 }
 
@@ -47,6 +48,7 @@ func NewAPI(panelVersion, locale string, url ...string) *API {
 
 	return &API{
 		panelVersion: panelVersion,
+		locale:       locale,
 		client:       client,
 	}
 }

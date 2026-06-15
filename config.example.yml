@@ -1,9 +1,9 @@
 app:
   debug: false
   key: a-long-string-with-32-characters
-  locale: zh_CN
-  timezone: Asia/Shanghai
-  root: /opt/ace
+  locale: en
+  timezone: Asia/Kolkata
+  root: /opt/ornaverse
   api_endpoint: api.acepanel.net
   download_endpoint: dl.acepanel.net
 http:

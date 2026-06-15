@@ -371,8 +371,59 @@ func (r *projectRepo) parsePercent(value string) (float64, error) {
 	return strconv.ParseFloat(value, 64)
 }
 
+// optimizeDotnetEnvironments applies optimization environment variables for .NET applications
+func (r *projectRepo) optimizeDotnetEnvironments(projType types.ProjectType, envs []types.KV, memoryLimit float64) []types.KV {
+	if projType != "dotnet" {
+		return envs
+	}
+
+	setEnv := func(key, value string) {
+		for i, env := range envs {
+			if env.Key == key {
+				envs[i].Value = value
+				return
+			}
+		}
+		envs = append(envs, types.KV{Key: key, Value: value})
+	}
+
+	// Respect user GCServer settings if already present (e.g. DOTNET_gcServer or COMPlus_gcServer)
+	hasGCServer := false
+	for _, env := range envs {
+		if env.Key == "DOTNET_gcServer" || env.Key == "COMPlus_gcServer" {
+			hasGCServer = true
+			break
+		}
+	}
+	if !hasGCServer {
+		setEnv("DOTNET_gcServer", "0") // Default to Workstation GC (0)
+	}
+
+	if memoryLimit == 0 {
+		memoryLimit = 2 * 1024 * 1024 * 1024 // 2GB default
+	}
+
+	// If memory limit is set, configure GC heap hard limit (in bytes, hex)
+	if memoryLimit > 0 {
+		limitBytes := int64(memoryLimit)
+		setEnv("DOTNET_GCHeapHardLimit", fmt.Sprintf("0x%X", limitBytes))
+		setEnv("DOTNET_System_GC_RetainVM", "1")
+	}
+
+	// General memory/perf optimizations for server deployment
+	setEnv("DOTNET_gcConcurrent", "1")
+	setEnv("DOTNET_TieredPGO", "1")
+	setEnv("DOTNET_ReadyToRun", "1")
+
+	return envs
+}
+
 // generateUnitFile 生成 systemd unit 文件
 func (r *projectRepo) generateUnitFile(req *request.ProjectCreate) error {
+	if req.Type == "dotnet" && req.MemoryLimit == 0 {
+		req.MemoryLimit = 2 * 1024 * 1024 * 1024 // Default to 2GB in bytes
+	}
+
 	req.RootDir = lo.If(!strings.HasPrefix(req.RootDir, "/"), filepath.Join("/", req.RootDir)).Else(req.RootDir)
 	req.WorkingDir = lo.If(req.WorkingDir != "", req.WorkingDir).Else(req.RootDir)
 	req.WorkingDir = lo.If(!strings.HasPrefix(req.WorkingDir, "/"), filepath.Join("/", req.WorkingDir)).Else(req.WorkingDir)
@@ -398,9 +449,18 @@ func (r *projectRepo) generateUnitFile(req *request.ProjectCreate) error {
 		options = append(options, unit.NewUnitOption("Service", "Restart", "on-failure"))
 	}
 
-	// 环境变量
-	for _, env := range req.Environments {
+	// 优化 .NET 环境变量并应用
+	optimizedEnvs := r.optimizeDotnetEnvironments(req.Type, req.Environments, req.MemoryLimit)
+	for _, env := range optimizedEnvs {
 		options = append(options, unit.NewUnitOption("Service", "Environment", fmt.Sprintf("%s=%s", env.Key, env.Value)))
+	}
+
+	// 资源限制
+	if req.MemoryLimit > 0 {
+		options = append(options, unit.NewUnitOption("Service", "MemoryLimit", r.formatBytes(req.MemoryLimit)))
+	}
+	if req.CPUQuota != "" {
+		options = append(options, unit.NewUnitOption("Service", "CPUQuota", req.CPUQuota))
 	}
 
 	// [Install] section
@@ -423,6 +483,10 @@ func (r *projectRepo) generateUnitFile(req *request.ProjectCreate) error {
 
 // updateUnitFile 更新 systemd unit 文件
 func (r *projectRepo) updateUnitFile(name string, req *request.ProjectUpdate) error {
+	if req.Type == "dotnet" && req.MemoryLimit == 0 {
+		req.MemoryLimit = 2 * 1024 * 1024 * 1024 // Default to 2GB in bytes
+	}
+
 	req.RootDir = lo.If(!strings.HasPrefix(req.RootDir, "/"), filepath.Join("/", req.RootDir)).Else(req.RootDir)
 	req.WorkingDir = lo.If(req.WorkingDir != "", req.WorkingDir).Else(req.RootDir)
 	req.WorkingDir = lo.If(!strings.HasPrefix(req.WorkingDir, "/"), filepath.Join("/", req.WorkingDir)).Else(req.WorkingDir)
@@ -489,8 +553,9 @@ func (r *projectRepo) updateUnitFile(name string, req *request.ProjectUpdate) er
 		options = append(options, unit.NewUnitOption("Service", "TimeoutStopSec", strconv.Itoa(req.TimeoutStopSec)))
 	}
 
-	// 环境变量
-	for _, env := range req.Environments {
+	// 优化 .NET 环境变量并应用
+	optimizedEnvs := r.optimizeDotnetEnvironments(req.Type, req.Environments, req.MemoryLimit)
+	for _, env := range optimizedEnvs {
 		options = append(options, unit.NewUnitOption("Service", "Environment", fmt.Sprintf("%s=%s", env.Key, env.Value)))
 	}
 

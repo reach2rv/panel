@@ -30,26 +30,29 @@ func (r *API) Environments() (*Environments, error) {
 	if r.locale == "en" {
 		for _, env := range *environments {
 			// Translate Name
-			if env.Name == "Go 运行环境" || env.Name == "Go" {
+			switch env.Name {
+			case "Go 运行环境", "Go":
 				env.Name = "Go"
-			} else if env.Name == "Java 运行环境" || env.Name == "Java" {
+			case "Java 运行环境", "Java":
 				env.Name = "Java"
-			} else if env.Name == "Node.js 运行环境" || env.Name == "Node.js" {
+			case "Node.js 运行环境", "Node.js":
 				env.Name = "Node.js"
-			} else if env.Name == "Python 运行环境" || env.Name == "Python" {
+			case "Python 运行环境", "Python":
 				env.Name = "Python"
 			}
 
 			// Translate Description
-			if env.Description == "Go 运行环境" {
+			switch env.Description {
+			case "Go 运行环境":
 				env.Description = "Go runtime environment"
-			} else if env.Description == "Java 运行环境" {
+			case "Java 运行环境":
 				env.Description = "Java runtime environment"
-			} else if env.Description == "Node.js 运行环境" {
+			case "Node.js 运行环境":
 				env.Description = "Node.js runtime environment"
-			} else if env.Description == "Python 运行环境" {
+			case "Python 运行环境":
 				env.Description = "Python runtime environment"
-			} else if env.Type == "php" {
+			}
+			if env.Type == "php" {
 				env.Name = fmt.Sprintf("PHP-%s", env.Slug)
 				env.Description = fmt.Sprintf("PHP-%s runtime environment", env.Slug)
 			} else if env.Type == "dotnet" {

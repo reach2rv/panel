@@ -92,11 +92,12 @@ func (r *cacheRepo) UpdateEnvironments() error {
 	hasNet9 := false
 	for _, env := range *environments {
 		if env.Type == "dotnet" {
-			if env.Slug == "6.0" {
+			switch env.Slug {
+			case "6.0":
 				hasNet6 = true
-			} else if env.Slug == "8.0" {
+			case "8.0":
 				hasNet8 = true
-			} else if env.Slug == "9.0" {
+			case "9.0":
 				hasNet9 = true
 			}
 		}

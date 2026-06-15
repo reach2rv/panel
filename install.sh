@@ -93,6 +93,7 @@ else
 fi
 
 # Cleanup
+cd "$INSTALL_DIR"
 rm -rf "$TMP_DIR"
 
 # 7. Setup Systemd Service

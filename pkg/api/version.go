@@ -1,8 +1,11 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/libtnb/utils/env"
@@ -25,18 +28,33 @@ type Version struct {
 
 type Versions []Version
 
+type GitHubReleaseAsset struct {
+	Name               string `json:"name"`
+	BrowserDownloadURL string `json:"browser_download_url"`
+}
+
+type GitHubRelease struct {
+	TagName   string               `json:"tag_name"`
+	Body      string               `json:"body"`
+	Assets    []GitHubReleaseAsset `json:"assets"`
+	CreatedAt time.Time            `json:"created_at"`
+}
+
 // LatestVersion 返回最新版本
 func (r *API) LatestVersion(channel string) (*Version, error) {
-	resp, err := r.client.R().SetResult(&Response{}).SetQueryParam("channel", channel).Get("/version/latest")
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Get("https://api.github.com/repos/reach2rv/panel/releases/latest")
 	if err != nil {
 		return nil, err
 	}
-	if !resp.IsStatusSuccess() {
-		return nil, fmt.Errorf("failed to get latest version: %s", resp.String())
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch latest release from GitHub: status %d", resp.StatusCode)
 	}
 
-	version, err := getResponseData[Version](resp)
-	if err != nil {
+	var release GitHubRelease
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
 		return nil, err
 	}
 
@@ -44,30 +62,83 @@ func (r *API) LatestVersion(channel string) (*Version, error) {
 	if env.IsArm() {
 		arch = "arm64"
 	}
-	version.Downloads = slices.DeleteFunc(version.Downloads, func(item VersionDownload) bool {
-		return item.Arch != arch
-	})
+
+	var downloadURL string
+	targetAsset := fmt.Sprintf("ornaverse-panel_linux_%s.zip", arch)
+	for _, asset := range release.Assets {
+		if asset.Name == targetAsset {
+			downloadURL = asset.BrowserDownloadURL
+			break
+		}
+	}
+	if downloadURL == "" {
+		for _, asset := range release.Assets {
+			if strings.Contains(asset.Name, "linux") && strings.Contains(asset.Name, arch) && strings.HasSuffix(asset.Name, ".zip") {
+				downloadURL = asset.BrowserDownloadURL
+				break
+			}
+		}
+	}
+
+	if downloadURL == "" {
+		return nil, fmt.Errorf("failed to find release asset for %s", targetAsset)
+	}
+
+	var checksumURL string
+	for _, asset := range release.Assets {
+		if strings.Contains(asset.Name, "checksums.txt") {
+			checksumURL = asset.BrowserDownloadURL
+			break
+		}
+	}
+	if checksumURL == "" {
+		checksumURL = downloadURL + ".sha256"
+	}
+
+	version := &Version{
+		Version:     release.TagName,
+		Description: release.Body,
+		Downloads: []VersionDownload{
+			{
+				URL:      downloadURL,
+				Arch:     arch,
+				Checksum: checksumURL,
+			},
+		},
+	}
 
 	return version, nil
 }
 
 // IntermediateVersions 返回当前版本之后的所有版本
 func (r *API) IntermediateVersions(channel string) (*Versions, error) {
-	resp, err := r.client.R().
-		SetQueryParam("start", r.panelVersion).
-		SetQueryParam("channel", channel).
-		SetResult(&Response{}).Get("/version/intermediate")
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Get("https://api.github.com/repos/reach2rv/panel/releases")
 	if err != nil {
 		return nil, err
 	}
-	if !resp.IsStatusSuccess() {
-		return nil, fmt.Errorf("failed to get intermediate versions: %s", resp.String())
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch releases from GitHub: status %d", resp.StatusCode)
 	}
 
-	versions, err := getResponseData[Versions](resp)
-	if err != nil {
+	var releases []GitHubRelease
+	if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
 		return nil, err
 	}
 
-	return versions, nil
+	var list Versions
+	for _, release := range releases {
+		if release.TagName == r.panelVersion {
+			break
+		}
+		list = append(list, Version{
+			CreatedAt:   release.CreatedAt,
+			Version:     release.TagName,
+			Description: release.Body,
+		})
+	}
+
+	return &list, nil
 }

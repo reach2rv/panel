@@ -1464,17 +1464,26 @@ func (r *backupRepo) UpdatePanel(version, url, checksum string) error {
 	}
 
 	if app.IsCli {
-		fmt.Println(r.t.Get("|-Run post-update script..."))
+		fmt.Println(r.t.Get("|-Writing panel service file..."))
 	}
-	if _, err := shell.Execf("curl -sSLm 10 https://%s/auto_update.sh | bash", r.conf.App.DownloadEndpoint); err != nil {
-		return errors.New(r.t.Get("|-Run post-update script failed: %v", err))
+	serviceContent := fmt.Sprintf(`[Unit]
+Description=OrnaVerse Panel Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%s
+ExecStart=%s/ace
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+`, app.Root, app.Root)
+	if err := os.WriteFile("/etc/systemd/system/ornaverse.service", []byte(serviceContent), 0644); err != nil {
+		return errors.New(r.t.Get("|-Write panel service file failed: %v", err))
 	}
-	if _, err := shell.Execf(
-		`wget -O /etc/systemd/system/ornaverse.service https://%s/ornaverse.service && sed -i "s|/www|%s|g" /etc/systemd/system/ornaverse.service`,
-		r.conf.App.DownloadEndpoint, app.Root,
-	); err != nil {
-		return errors.New(r.t.Get("|-Download panel service file failed: %v", err))
-	}
+
 	if _, err := shell.Execf("acepanel setting write version %s", version); err != nil {
 		return errors.New(r.t.Get("|-Write new panel version failed: %v", err))
 	}

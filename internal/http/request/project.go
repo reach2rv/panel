@@ -1,9 +1,6 @@
 package request
 
 import (
-	"errors"
-	"net/http"
-
 	"github.com/acepanel/panel/v3/pkg/types"
 )
 

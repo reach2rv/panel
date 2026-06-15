@@ -87,6 +87,37 @@ func (r *cacheRepo) UpdateEnvironments() error {
 		return err
 	}
 
+	hasNet8 := false
+	hasNet9 := false
+	for _, env := range *environments {
+		if env.Type == "dotnet" {
+			if env.Slug == "8.0" {
+				hasNet8 = true
+			} else if env.Slug == "9.0" {
+				hasNet9 = true
+			}
+		}
+	}
+
+	if !hasNet8 {
+		*environments = append(*environments, &api.Environment{
+			Type:        "dotnet",
+			Slug:        "8.0",
+			Name:        ".NET 8.0",
+			Version:     "8.0.12",
+			Description: ".NET 8.0 Runtime",
+		})
+	}
+	if !hasNet9 {
+		*environments = append(*environments, &api.Environment{
+			Type:        "dotnet",
+			Slug:        "9.0",
+			Name:        ".NET 9.0",
+			Version:     "9.0.2",
+			Description: ".NET 9.0 Runtime",
+		})
+	}
+
 	encoded, err := json.Marshal(environments)
 	if err != nil {
 		return err

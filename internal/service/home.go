@@ -385,8 +385,14 @@ func (s *HomeService) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := fmt.Sprintf("https://%s%s", s.conf.App.DownloadEndpoint, download.URL)
-	checksum := fmt.Sprintf("https://%s%s", s.conf.App.DownloadEndpoint, download.Checksum)
+	url := download.URL
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = fmt.Sprintf("https://%s%s", s.conf.App.DownloadEndpoint, url)
+	}
+	checksum := download.Checksum
+	if !strings.HasPrefix(checksum, "http://") && !strings.HasPrefix(checksum, "https://") {
+		checksum = fmt.Sprintf("https://%s%s", s.conf.App.DownloadEndpoint, checksum)
+	}
 
 	app.Status = app.StatusUpgrade
 	if err = s.backupRepo.UpdatePanel(panel.Version, url, checksum); err != nil {

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-version"
@@ -168,8 +169,14 @@ func (r *PanelTask) updatePanel() {
 			return
 		}
 		if download := collect.First(panel.Downloads); download != nil {
-			url := fmt.Sprintf("https://%s%s", r.conf.App.DownloadEndpoint, download.URL)
-			checksum := fmt.Sprintf("https://%s%s", r.conf.App.DownloadEndpoint, download.Checksum)
+			url := download.URL
+			if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+				url = fmt.Sprintf("https://%s%s", r.conf.App.DownloadEndpoint, url)
+			}
+			checksum := download.Checksum
+			if !strings.HasPrefix(checksum, "http://") && !strings.HasPrefix(checksum, "https://") {
+				checksum = fmt.Sprintf("https://%s%s", r.conf.App.DownloadEndpoint, checksum)
+			}
 			if err = r.backupRepo.UpdatePanel(panel.Version, url, checksum); err != nil {
 				r.log.Warn("failed to update panel", slog.String("type", biz.OperationTypePanel), slog.Uint64("operator_id", 0), slog.Any("err", err))
 				_ = r.backupRepo.FixPanel()

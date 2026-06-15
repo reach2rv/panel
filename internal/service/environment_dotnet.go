@@ -10,6 +10,7 @@ import (
 	"github.com/acepanel/panel/v3/internal/biz"
 	"github.com/acepanel/panel/v3/internal/http/request"
 	"github.com/acepanel/panel/v3/pkg/io"
+	"github.com/acepanel/panel/v3/pkg/shell"
 )
 
 type EnvironmentDotnetService struct {

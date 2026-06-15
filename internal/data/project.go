@@ -483,7 +483,12 @@ func (r *projectRepo) generateUnitFile(req *request.ProjectCreate) error {
 
 // updateUnitFile 更新 systemd unit 文件
 func (r *projectRepo) updateUnitFile(name string, req *request.ProjectUpdate) error {
-	if req.Type == "dotnet" && req.MemoryLimit == 0 {
+	var projType types.ProjectType
+	if err := r.db.Model(&biz.Project{}).Where("name = ?", name).Pluck("type", &projType).Error; err != nil {
+		projType = "general"
+	}
+
+	if projType == "dotnet" && req.MemoryLimit == 0 {
 		req.MemoryLimit = 2 * 1024 * 1024 * 1024 // Default to 2GB in bytes
 	}
 
@@ -554,7 +559,7 @@ func (r *projectRepo) updateUnitFile(name string, req *request.ProjectUpdate) er
 	}
 
 	// 优化 .NET 环境变量并应用
-	optimizedEnvs := r.optimizeDotnetEnvironments(req.Type, req.Environments, req.MemoryLimit)
+	optimizedEnvs := r.optimizeDotnetEnvironments(projType, req.Environments, req.MemoryLimit)
 	for _, env := range optimizedEnvs {
 		options = append(options, unit.NewUnitOption("Service", "Environment", fmt.Sprintf("%s=%s", env.Key, env.Value)))
 	}

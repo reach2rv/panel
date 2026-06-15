@@ -68,17 +68,27 @@ curl -sSL "$DOWNLOAD_URL" -o "$FILENAME"
 unzip -q "$FILENAME"
 
 # 6. Install to /opt/ornaverse
-echo "==> Installing to $INSTALL_DIR..."
+if [ -f "$INSTALL_DIR/ace" ]; then
+    echo "==> Updating to $INSTALL_DIR..."
+else
+    echo "==> Installing to $INSTALL_DIR..."
+fi
 mkdir -p "$INSTALL_DIR"
 # Stop service if running to prevent Text file busy
 if systemctl is-active --quiet ornaverse; then
     echo "==> Stopping active ornaverse service for update..."
     systemctl stop ornaverse || true
 fi
-rm -f "$INSTALL_DIR/ace" "$INSTALL_DIR/cli"
+if [ -f "$INSTALL_DIR/ace" ]; then
+    mv -f "$INSTALL_DIR/ace" "$INSTALL_DIR/ace.old" || true
+fi
+if [ -f "$INSTALL_DIR/cli" ]; then
+    mv -f "$INSTALL_DIR/cli" "$INSTALL_DIR/cli.old" || true
+fi
 cp ace "$INSTALL_DIR/"
 cp cli "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/ace" "$INSTALL_DIR/cli"
+rm -f "$INSTALL_DIR/ace.old" "$INSTALL_DIR/cli.old"
 
 # Optional storage directory if packaged by goreleaser
 if [ -d "storage" ]; then

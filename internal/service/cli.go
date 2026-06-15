@@ -76,7 +76,7 @@ func NewCliService(t *gotext.Locale, conf *config.Config, db *gorm.DB, appRepo b
 }
 
 func (s *CliService) Status(ctx context.Context, cmd *cli.Command) error {
-	status, err := systemctl.Status("acepanel")
+	status, err := systemctl.Status("ornaverse")
 	if err != nil {
 		return err
 	}
@@ -89,32 +89,32 @@ func (s *CliService) Status(ctx context.Context, cmd *cli.Command) error {
 		statusStr = s.t.Get("stopped")
 	}
 
-	fmt.Println(s.t.Get("AcePanel service status: %s", statusStr))
+	fmt.Println(s.t.Get("OrnaVerse Panel service status: %s", statusStr))
 
 	return nil
 }
 
 func (s *CliService) Restart(ctx context.Context, cmd *cli.Command) error {
-	if err := systemctl.Restart("acepanel"); err != nil {
+	if err := systemctl.Restart("ornaverse"); err != nil {
 		return err
 	}
-	fmt.Println(s.t.Get("AcePanel service restarted"))
+	fmt.Println(s.t.Get("OrnaVerse Panel service restarted"))
 	return nil
 }
 
 func (s *CliService) Stop(ctx context.Context, cmd *cli.Command) error {
-	if err := systemctl.Stop("acepanel"); err != nil {
+	if err := systemctl.Stop("ornaverse"); err != nil {
 		return err
 	}
-	fmt.Println(s.t.Get("AcePanel service stopped"))
+	fmt.Println(s.t.Get("OrnaVerse Panel service stopped"))
 	return nil
 }
 
 func (s *CliService) Start(ctx context.Context, cmd *cli.Command) error {
-	if err := systemctl.Start("acepanel"); err != nil {
+	if err := systemctl.Start("ornaverse"); err != nil {
 		return err
 	}
-	fmt.Println(s.t.Get("AcePanel service started"))
+	fmt.Println(s.t.Get("OrnaVerse Panel service started"))
 	return nil
 }
 

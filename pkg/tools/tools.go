@@ -179,12 +179,12 @@ func CollectTopProcesses() types.TopProcesses {
 
 // StopPanel 停止面板
 func StopPanel() {
-	_ = shell.ExecfAsync("sleep 1 && systemctl stop acepanel")
+	_ = shell.ExecfAsync("sleep 1 && systemctl stop ornaverse")
 }
 
 // RestartPanel 重启面板
 func RestartPanel() {
-	_ = shell.ExecfAsync("sleep 1 && systemctl restart acepanel")
+	_ = shell.ExecfAsync("sleep 1 && systemctl restart ornaverse")
 }
 
 // RestartServer 重启服务器

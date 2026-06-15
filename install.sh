@@ -8,7 +8,7 @@ set -e
 # Configuration
 # Change this to your actual GitHub username/repo
 REPO=${REPO:-"reach2rv/panel"}
-INSTALL_DIR="/opt/ornaverse"
+INSTALL_DIR="/opt/ornaverse/panel"
 TMP_DIR="/tmp/ornaverse_install"
 
 echo "================================================="
@@ -116,8 +116,19 @@ systemctl daemon-reload
 systemctl enable ornaverse
 systemctl restart ornaverse
 
+# 8. Create symlinks for CLI tool
+echo "==> Creating system symlinks..."
+ln -sf "$INSTALL_DIR/cli" /usr/local/sbin/acepanel
+ln -sf "$INSTALL_DIR/cli" /usr/local/sbin/ornaverse
+chmod +x /usr/local/sbin/acepanel /usr/local/sbin/ornaverse
+
+# 9. Initialize database/settings and print connection details
+echo "==> Initializing panel database and settings..."
+/usr/local/sbin/ornaverse info
+
 echo "================================================="
 echo "==> Installation complete!"
 echo "==> OrnaVerse Panel is now installed and running."
 echo "==> Check status with: systemctl status ornaverse"
+echo "==> Manage the panel using the 'ornaverse' command."
 echo "================================================="

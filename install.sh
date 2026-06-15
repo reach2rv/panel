@@ -124,6 +124,7 @@ chmod +x /usr/local/sbin/acepanel /usr/local/sbin/ornaverse
 
 # 9. Initialize database/settings and print connection details
 echo "==> Initializing panel database and settings..."
+/usr/local/sbin/ornaverse init
 /usr/local/sbin/ornaverse info
 
 echo "================================================="

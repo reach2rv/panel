@@ -14,10 +14,10 @@ func GlobalRules(db *gorm.DB) {
 		"ipcidr":    NewIPCIDR().Passes,
 	})
 	validate.AddGlobalMessages(map[string]string{
-		"exists":    "{field} 不存在",
-		"notExists": "{field} 已存在",
-		"password":  "密码不满足要求（8-20位，至少包含字母、数字、特殊字符中的两种）",
-		"cron":      "Cron 表达式不合法",
-		"ipcidr":    "IP 或 CIDR 格式不合法",
+		"exists":    "{field} does not exist",
+		"notExists": "{field} already exists",
+		"password":  "Password does not meet requirements (8-20 characters, containing at least two of: letters, numbers, special characters)",
+		"cron":      "Invalid Cron expression",
+		"ipcidr":    "Invalid IP or CIDR format",
 	})
 }

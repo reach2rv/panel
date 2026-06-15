@@ -3,6 +3,7 @@ defineOptions({
   name: 'file-index',
 })
 
+import { useGettext } from 'vue3-gettext'
 import { useFileStore } from '@/stores'
 import CompressModal from '@/views/file/CompressModal.vue'
 import ListView from '@/views/file/ListView.vue'
@@ -12,6 +13,7 @@ import ToolBar from '@/views/file/ToolBar.vue'
 import type { FileInfo } from '@/views/file/types'
 import UploadModal from '@/views/file/UploadModal.vue'
 
+const { $gettext } = useGettext()
 const fileStore = useFileStore()
 
 const selected = ref<string[]>([])
@@ -56,7 +58,7 @@ const handleTabMiddleClick = (tabId: string) => {
 const handleDragEnter = (e: DragEvent) => {
   e.preventDefault()
   e.stopPropagation()
-  if (e.dataTransfer?.types.includes('Files')) {
+  if (e.dataTransfer?.types?.includes('Files')) {
     isDragging.value = true
   }
 }
@@ -82,20 +84,20 @@ const handleDragOver = (e: DragEvent) => {
 
 // 递归读取目录中的所有文件
 const readDirectoryRecursively = async (
-  entry: FileSystemDirectoryEntry,
+  entry: any,
   basePath: string = '',
 ): Promise<File[]> => {
   const files: File[] = []
   const reader = entry.createReader()
 
-  const readEntries = (): Promise<FileSystemEntry[]> => {
+  const readEntries = (): Promise<any[]> => {
     return new Promise((resolve, reject) => {
       reader.readEntries(resolve, reject)
     })
   }
 
-  let entries: FileSystemEntry[] = []
-  let batch: FileSystemEntry[]
+  let entries: any[] = []
+  let batch: any[]
   do {
     batch = await readEntries()
     entries = entries.concat(batch)
@@ -104,9 +106,9 @@ const readDirectoryRecursively = async (
   for (const childEntry of entries) {
     const childPath = basePath ? `${basePath}/${childEntry.name}` : childEntry.name
     if (childEntry.isFile) {
-      const fileEntry = childEntry as FileSystemFileEntry
+      const fileEntry = childEntry as any
       const file = await new Promise<File>((resolve, reject) => {
-        fileEntry.file((f) => {
+        fileEntry.file((f: any) => {
           const newFile = new File([f], childPath, { type: f.type, lastModified: f.lastModified })
           resolve(newFile)
         }, reject)
@@ -114,7 +116,7 @@ const readDirectoryRecursively = async (
       files.push(file)
     } else if (childEntry.isDirectory) {
       const subFiles = await readDirectoryRecursively(
-        childEntry as FileSystemDirectoryEntry,
+        childEntry as any,
         childPath,
       )
       files.push(...subFiles)
@@ -137,14 +139,14 @@ const handleDrop = async (e: DragEvent) => {
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
     if (item?.kind === 'file') {
-      const entry = item.webkitGetAsEntry()
+      const entry = (item as any).webkitGetAsEntry()
       if (entry) {
         if (entry.isFile) {
           const file = item.getAsFile()
           if (file) files.push(file)
         } else if (entry.isDirectory) {
           const dirFiles = await readDirectoryRecursively(
-            entry as FileSystemDirectoryEntry,
+            entry as any,
             entry.name,
           )
           files.push(...dirFiles)
@@ -237,7 +239,7 @@ watch(upload, (val) => {
     <div v-if="isDragging" class="drag-overlay">
       <div class="drag-content">
         <the-icon icon="mdi:cloud-upload" :size="64" />
-        <p>释放文件以上传</p>
+        <p>{{ $gettext('Drop files here to upload') }}</p>
       </div>
     </div>
 

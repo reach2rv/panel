@@ -112,9 +112,21 @@ func (r *projectRepo) Create(ctx context.Context, req *request.ProjectCreate) (*
 			return fmt.Errorf("%s: %w", r.t.Get("failed to create project directory"), err)
 		}
 
+		if req.AutoStart && req.ExecStartPre == "" {
+			if delay, err := r.calculateNextStaggerDelay(); err == nil && delay > 0 {
+				req.ExecStartPre = fmt.Sprintf("sleep %d", delay)
+			}
+		}
+
 		// 生成 systemd unit 文件
 		if err := r.generateUnitFile(req); err != nil {
 			return fmt.Errorf("%s: %w", r.t.Get("failed to generate systemd config"), err)
+		}
+
+		if req.AutoStart {
+			if err := systemctl.Enable(req.Name); err != nil {
+				return fmt.Errorf("%s: %w", r.t.Get("failed to enable project auto start"), err)
+			}
 		}
 
 		return nil
@@ -437,6 +449,9 @@ func (r *projectRepo) generateUnitFile(req *request.ProjectCreate) error {
 		unit.NewUnitOption("Service", "WorkingDirectory", req.WorkingDir),
 	}
 
+	if req.ExecStartPre != "" {
+		options = append(options, unit.NewUnitOption("Service", "ExecStartPre", req.ExecStartPre))
+	}
 	if req.ExecStart != "" {
 		options = append(options, unit.NewUnitOption("Service", "ExecStart", req.ExecStart))
 	}
@@ -616,4 +631,39 @@ func (r *projectRepo) updateUnitFile(name string, req *request.ProjectUpdate) er
 	}
 
 	return systemctl.DaemonReload()
+}
+
+func (r *projectRepo) calculateNextStaggerDelay() (int, error) {
+	var projects []*biz.Project
+	if err := r.db.Find(&projects).Error; err != nil {
+		return 0, err
+	}
+
+	delayCounts := make(map[int]int)
+	for _, p := range projects {
+		enabled, err := systemctl.IsEnabled(p.Name)
+		if err != nil || !enabled {
+			continue
+		}
+
+		detail, err := r.parseProjectDetail(p)
+		if err != nil {
+			continue
+		}
+
+		if strings.HasPrefix(detail.ExecStartPre, "sleep ") {
+			secondsStr := strings.TrimPrefix(detail.ExecStartPre, "sleep ")
+			if seconds, err := strconv.Atoi(secondsStr); err == nil {
+				delayCounts[seconds]++
+			}
+		} else if detail.ExecStartPre == "" {
+			delayCounts[0]++
+		}
+	}
+
+	for delay := 0; ; delay += 30 {
+		if delayCounts[delay] < 2 {
+			return delay, nil
+		}
+	}
 }

@@ -19,42 +19,5 @@ const year = new Date().getFullYear()
       </a>
       {{ $gettext('All Rights Reserved.') }}
     </p>
-    <p class="flex gap-1 items-center">
-      <a
-        class="hover:text-brand-hover hover:underline"
-        rel="noreferrer"
-        target="_blank"
-        href="https://jq.qq.com/?_wv=1027&k=I1oJKSTH"
-      >
-        {{ $gettext('QQ Group') }} 12370907
-      </a>
-      <n-divider vertical />
-      <a
-        class="hover:text-brand-hover hover:underline"
-        rel="noreferrer"
-        target="_blank"
-        href="https://ornaverse.com"
-      >
-        {{ $gettext('Website') }}
-      </a>
-      <n-divider vertical />
-      <a
-        class="hover:text-brand-hover hover:underline"
-        rel="noreferrer"
-        target="_blank"
-        href="https://ornaverse.com"
-      >
-        {{ $gettext('Community') }}
-      </a>
-      <n-divider vertical />
-      <a
-        class="hover:text-brand-hover hover:underline"
-        rel="noreferrer"
-        target="_blank"
-        href="https://afdian.com/a/tnborg"
-      >
-        {{ $gettext('Sponsor') }}
-      </a>
-    </p>
   </footer>
 </template>

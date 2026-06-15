@@ -70,6 +70,8 @@ func (r *API) Templates() (*Templates, error) {
 		return nil, err
 	}
 
+	r.translateTemplates(templates)
+
 	return templates, nil
 }
 
@@ -88,7 +90,64 @@ func (r *API) TemplateBySlug(slug string) (*Template, error) {
 		return nil, err
 	}
 
+	r.translateTemplate(template)
+
 	return template, nil
+}
+
+var TemplateTranslations = map[string]struct {
+	Name        string
+	Description string
+}{
+	"wordpress":             {Name: "WordPress", Description: "Web publishing platform and Content Management System (CMS)"},
+	"halo":                  {Name: "Halo", Description: "Modern personal website building assistant / blog system"},
+	"nextcloud":             {Name: "Nextcloud", Description: "Self-hosted productivity platform / private cloud storage"},
+	"adguardhome":           {Name: "AdGuard Home", Description: "Network-wide software for blocking ads & tracking"},
+	"nginx-proxy-manager":   {Name: "Nginx Proxy Manager", Description: "Expose your private network services easily and securely"},
+	"portainer":             {Name: "Portainer", Description: "Universal container management tool"},
+}
+
+var TemplateCategoryTranslations = map[string]string{
+	"博客":  "website",
+	"建站":  "website",
+	"运维":  "deployment",
+	"安全":  "tool",
+	"工具":  "tool",
+	"数据库": "database",
+	"其他":  "tool",
+	"其它":  "tool",
+}
+
+func (r *API) translateTemplates(templates *Templates) {
+	if r.locale != "en" {
+		return
+	}
+	for _, tpl := range *templates {
+		if t, ok := TemplateTranslations[tpl.Slug]; ok {
+			tpl.Name = t.Name
+			tpl.Description = t.Description
+		}
+		for i, cat := range tpl.Categories {
+			if trans, ok := TemplateCategoryTranslations[cat]; ok {
+				tpl.Categories[i] = trans
+			}
+		}
+	}
+}
+
+func (r *API) translateTemplate(tpl *Template) {
+	if r.locale != "en" {
+		return
+	}
+	if t, ok := TemplateTranslations[tpl.Slug]; ok {
+		tpl.Name = t.Name
+		tpl.Description = t.Description
+	}
+	for i, cat := range tpl.Categories {
+		if trans, ok := TemplateCategoryTranslations[cat]; ok {
+			tpl.Categories[i] = trans
+		}
+	}
 }
 
 // TemplateCallback 模版下载回调

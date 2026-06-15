@@ -1,6 +1,11 @@
 package request
 
-import "github.com/acepanel/panel/v3/pkg/types"
+import (
+	"errors"
+	"net/http"
+
+	"github.com/acepanel/panel/v3/pkg/types"
+)
 
 type ProjectCreate struct {
 	Name         string            `form:"name" json:"name" validate:"required|regex:^[a-zA-Z0-9_-]+$"`
@@ -8,10 +13,12 @@ type ProjectCreate struct {
 	Description  string            `form:"description" json:"description"`
 	RootDir      string            `form:"root_dir" json:"root_dir"`
 	WorkingDir   string            `form:"working_dir" json:"working_dir"`
+	ExecStartPre string            `form:"exec_start_pre" json:"exec_start_pre"`
 	ExecStart    string            `form:"exec_start" json:"exec_start"`
 	User         string            `form:"user" json:"user"`
 	Restart      string            `json:"restart"`
 	Environments []types.KV
+	AutoStart    bool              `form:"auto_start" json:"auto_start"`
 
 	MemoryLimit float64 `form:"memory_limit" json:"memory_limit"`
 	CPUQuota    string  `form:"cpu_quota" json:"cpu_quota"`

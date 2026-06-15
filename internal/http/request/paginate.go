@@ -11,13 +11,13 @@ type Paginate struct {
 
 func (r *Paginate) Messages(_ *http.Request) map[string]string {
 	return map[string]string{
-		"Page.gte":       "页码必须大于或等于1",
-		"Limit.gte":      "每页数量必须大于或等于1",
-		"Limit.lte":      "每页数量必须小于或等于10000",
-		"Page.number":    "页码必须是数字",
-		"Limit.number":   "每页数量必须是数字",
-		"Page.required":  "页码不能为空",
-		"Limit.required": "每页数量不能为空",
+		"Page.gte":       "Page must be greater than or equal to 1",
+		"Limit.gte":      "Limit must be greater than or equal to 1",
+		"Limit.lte":      "Limit must be less than or equal to 10000",
+		"Page.number":    "Page must be a number",
+		"Limit.number":   "Limit must be a number",
+		"Page.required":  "Page is required",
+		"Limit.required": "Limit is required",
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 
 	"github.com/expr-lang/expr"
 	"github.com/hashicorp/go-version"
@@ -59,8 +60,17 @@ func (r *appRepo) Categories() []types.LV {
 		return a.Order - b.Order
 	})
 
+	lang := r.t.GetLanguage()
+	isEn := strings.HasPrefix(lang, "en")
+
 	return lo.Map(categories, func(item *api.Category, _ int) types.LV {
-		return types.LV{Label: item.Name, Value: item.Slug}
+		label := item.Name
+		if isEn {
+			if t, ok := api.CategoryTranslations[item.Slug]; ok {
+				label = t
+			}
+		}
+		return types.LV{Label: label, Value: item.Slug}
 	})
 }
 

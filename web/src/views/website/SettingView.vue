@@ -110,7 +110,7 @@ const handleSaveStatSetting = () => {
       </n-flex>
     </n-tab-pane>
     <n-tab-pane name="default-site" :tab="$gettext('Default Site')">
-      <n-alert type="info">待开发</n-alert>
+      <n-alert type="info">{{ $gettext('Under development') }}</n-alert>
     </n-tab-pane>
     <n-tab-pane name="default-setting" :tab="$gettext('Default Settings')">
       <n-flex vertical>

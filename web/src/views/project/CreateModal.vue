@@ -80,8 +80,10 @@ const createModel = ref({
   type: '',
   root_dir: '',
   working_dir: '',
+  exec_start_pre: '',
   exec_start: '',
   user: 'www',
+  auto_start: false,
 })
 
 // 反向代理相关
@@ -354,8 +356,10 @@ const handleCreate = async () => {
         type: '',
         root_dir: '',
         working_dir: '',
+        exec_start_pre: '',
         exec_start: '',
         user: 'www',
+        auto_start: false,
       }
       proxyOptions.value = {
         enabled: false,
@@ -644,6 +648,25 @@ const modalTitle = computed(() => {
           type="text"
           @keydown.enter.prevent
           :placeholder="$gettext('e.g., php artisan serve, node app.js')"
+        />
+      </n-form-item>
+      <n-form-item :label="$gettext('Auto Start')">
+        <n-switch v-model:value="createModel.auto_start" />
+        <template #feedback>
+          <span class="text-gray-400">
+            {{ $gettext('Whether to enable service auto start on boot') }}
+          </span>
+        </template>
+      </n-form-item>
+      <n-form-item
+        path="exec_start_pre"
+        :label="$gettext('Pre-start Command')"
+      >
+        <n-input
+          v-model:value="createModel.exec_start_pre"
+          type="text"
+          @keydown.enter.prevent
+          :placeholder="createModel.auto_start ? $gettext('Leave empty to auto-calculate staggered delay (e.g., sleep 30), or enter custom command') : $gettext('Optional, command executed before starting service')"
         />
       </n-form-item>
       <n-form-item :label="$gettext('Reverse Proxy')">

@@ -84,6 +84,7 @@ const createModel = ref({
   exec_start: '',
   user: 'www',
   auto_start: false,
+  port: null as number | null,
 })
 
 // 反向代理相关
@@ -360,6 +361,7 @@ const handleCreate = async () => {
         exec_start: '',
         user: 'www',
         auto_start: false,
+        port: null,
       }
       proxyOptions.value = {
         enabled: false,
@@ -600,7 +602,7 @@ const modalTitle = computed(() => {
       <!-- .NET 类型特有字段 -->
       <template v-if="type === 'dotnet'">
         <n-row :gutter="[24, 0]">
-          <n-col :span="12">
+          <n-col :span="8">
             <n-form-item :label="$gettext('.NET Version')">
               <n-select
                 v-model:value="dotnetOptions.version"
@@ -610,13 +612,25 @@ const modalTitle = computed(() => {
               />
             </n-form-item>
           </n-col>
-          <n-col :span="12">
+          <n-col :span="8">
             <n-form-item :label="$gettext('Framework')">
               <n-select
                 v-model:value="dotnetOptions.framework"
                 :options="dotnetFrameworks"
                 :placeholder="$gettext('Select Framework')"
                 @keydown.enter.prevent
+              />
+            </n-form-item>
+          </n-col>
+          <n-col :span="8">
+            <n-form-item :label="$gettext('Listen Port')">
+              <n-input-number
+                v-model:value="createModel.port"
+                :min="1"
+                :max="65535"
+                style="width: 100%"
+                :placeholder="$gettext('e.g., 5000')"
+                @update:value="(v) => { if (proxyOptions.enabled && v) proxyOptions.port = v }"
               />
             </n-form-item>
           </n-col>

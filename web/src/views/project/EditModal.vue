@@ -37,6 +37,7 @@ const model = ref({
   before: [] as string[],
   memory_limit: 0,
   cpu_quota: '',
+  port: 0,
   no_new_privileges: false,
   protect_tmp: false,
   protect_home: false,
@@ -124,6 +125,7 @@ const loadProject = async () => {
         before: data.before || [],
         memory_limit: data.memory_limit || 0,
         cpu_quota: data.cpu_quota || '',
+        port: data.port || 0,
         no_new_privileges: data.no_new_privileges || false,
         protect_tmp: data.protect_tmp || false,
         protect_home: data.protect_home || false,
@@ -261,6 +263,20 @@ const handleSave = async () => {
                 @keydown.enter.prevent
                 :placeholder="$gettext('e.g., php artisan serve, node app.js')"
               />
+            </n-form-item>
+            <n-form-item path="port" :label="$gettext('Listen Port')">
+              <n-input-number
+                v-model:value="model.port"
+                :min="0"
+                :max="65535"
+                style="width: 200px"
+                :placeholder="$gettext('0 = not set (dotnet defaults to 5000)')"
+              />
+              <template #feedback>
+                <span class="text-gray-400">
+                  {{ $gettext('Sets ASPNETCORE_URLS for .NET projects. Leave 0 to skip.') }}
+                </span>
+              </template>
             </n-form-item>
             <n-form-item path="exec_start_pre" :label="$gettext('Pre-start Command')">
               <n-input

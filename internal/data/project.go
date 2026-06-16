@@ -101,6 +101,12 @@ func (r *projectRepo) Create(ctx context.Context, req *request.ProjectCreate) (*
 		Path: lo.If(!strings.HasPrefix(req.RootDir, "/"), filepath.Join("/", req.RootDir)).Else(req.RootDir),
 	}
 
+	if req.AutoStart && req.ExecStartPre == "" {
+		if delay, err := r.calculateNextStaggerDelay(); err == nil && delay > 0 {
+			req.ExecStartPre = fmt.Sprintf("sleep %d", delay)
+		}
+	}
+
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		// 创建数据库记录
 		if err := tx.Create(project).Error; err != nil {
@@ -110,12 +116,6 @@ func (r *projectRepo) Create(ctx context.Context, req *request.ProjectCreate) (*
 		// 创建项目目录
 		if err := os.MkdirAll(project.Path, 0755); err != nil {
 			return fmt.Errorf("%s: %w", r.t.Get("failed to create project directory"), err)
-		}
-
-		if req.AutoStart && req.ExecStartPre == "" {
-			if delay, err := r.calculateNextStaggerDelay(); err == nil && delay > 0 {
-				req.ExecStartPre = fmt.Sprintf("sleep %d", delay)
-			}
 		}
 
 		// 生成 systemd unit 文件

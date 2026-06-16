@@ -14,7 +14,7 @@ type ProjectCreate struct {
 	ExecStart    string            `form:"exec_start" json:"exec_start"`
 	User         string            `form:"user" json:"user"`
 	Restart      string            `json:"restart"`
-	Environments []types.KV
+	Environments []types.KV        `form:"environments" json:"environments"`
 	AutoStart    bool              `form:"auto_start" json:"auto_start"`
 
 	MemoryLimit float64 `form:"memory_limit" json:"memory_limit"`

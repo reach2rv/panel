@@ -16,6 +16,7 @@ type ProjectCreate struct {
 	Restart      string            `json:"restart"`
 	Environments []types.KV        `form:"environments" json:"environments"`
 	AutoStart    bool              `form:"auto_start" json:"auto_start"`
+	Port         uint              `form:"port" json:"port"`
 
 	MemoryLimit float64 `form:"memory_limit" json:"memory_limit"`
 	CPUQuota    string  `form:"cpu_quota" json:"cpu_quota"`
@@ -46,6 +47,7 @@ type ProjectUpdate struct {
 	After           []string   `form:"after" json:"after"`
 	Before          []string   `form:"before" json:"before"`
 
+	Port        uint    `form:"port" json:"port"`
 	MemoryLimit float64 `form:"memory_limit" json:"memory_limit"`
 	CPUQuota    string  `form:"cpu_quota" json:"cpu_quota"`
 

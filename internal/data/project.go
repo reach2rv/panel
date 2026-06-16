@@ -300,6 +300,12 @@ func (r *projectRepo) parseServiceSection(detail *types.ProjectDetail, opt *unit
 	case "Environment":
 		// 格式: KEY=VALUE
 		if kv := r.parseEnvironment(opt.Value); kv != nil {
+			// Recover port from ASPNETCORE_URLS so the frontend can display it.
+			if kv.Key == "ASPNETCORE_URLS" {
+				if port := parsePortFromURLs(kv.Value); port > 0 {
+					detail.Port = port
+				}
+			}
 			detail.Environments = append(detail.Environments, *kv)
 		}
 	case "StandardOutput":
@@ -383,8 +389,22 @@ func (r *projectRepo) parsePercent(value string) (float64, error) {
 	return strconv.ParseFloat(value, 64)
 }
 
+// parsePortFromURLs extracts the port from an ASPNETCORE_URLS value.
+// e.g. "http://0.0.0.0:8080" -> 8080
+func parsePortFromURLs(urls string) uint {
+	// Take the first URL if semicolon-separated.
+	first := strings.SplitN(urls, ";", 2)[0]
+	if idx := strings.LastIndex(first, ":"); idx != -1 {
+		if p, err := strconv.ParseUint(first[idx+1:], 10, 32); err == nil {
+			return uint(p)
+		}
+	}
+	return 0
+}
+
+
 // optimizeDotnetEnvironments applies optimization environment variables for .NET applications
-func (r *projectRepo) optimizeDotnetEnvironments(projType types.ProjectType, envs []types.KV, memoryLimit float64) []types.KV {
+func (r *projectRepo) optimizeDotnetEnvironments(projType types.ProjectType, envs []types.KV, memoryLimit float64, port uint) []types.KV {
 	if projType != "dotnet" {
 		return envs
 	}
@@ -397,6 +417,20 @@ func (r *projectRepo) optimizeDotnetEnvironments(projType types.ProjectType, env
 			}
 		}
 		envs = append(envs, types.KV{Key: key, Value: value})
+	}
+	hasEnv := func(key string) bool {
+		for _, env := range envs {
+			if env.Key == key {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Bind to the user-defined port so dotnet doesn't default to 5000.
+	if port > 0 && !hasEnv("ASPNETCORE_URLS") {
+		setEnv("ASPNETCORE_URLS", fmt.Sprintf("http://0.0.0.0:%d", port))
+		setEnv("DOTNET_HTTP_PORTS", fmt.Sprintf("%d", port)) // .NET 8+ fallback
 	}
 
 	// Respect user GCServer settings if already present (e.g. DOTNET_gcServer or COMPlus_gcServer)
@@ -465,7 +499,7 @@ func (r *projectRepo) generateUnitFile(req *request.ProjectCreate) error {
 	}
 
 	// 优化 .NET 环境变量并应用
-	optimizedEnvs := r.optimizeDotnetEnvironments(req.Type, req.Environments, req.MemoryLimit)
+	optimizedEnvs := r.optimizeDotnetEnvironments(req.Type, req.Environments, req.MemoryLimit, req.Port)
 	for _, env := range optimizedEnvs {
 		options = append(options, unit.NewUnitOption("Service", "Environment", fmt.Sprintf("%s=%s", env.Key, env.Value)))
 	}
@@ -574,7 +608,7 @@ func (r *projectRepo) updateUnitFile(name string, req *request.ProjectUpdate) er
 	}
 
 	// 优化 .NET 环境变量并应用
-	optimizedEnvs := r.optimizeDotnetEnvironments(projType, req.Environments, req.MemoryLimit)
+	optimizedEnvs := r.optimizeDotnetEnvironments(projType, req.Environments, req.MemoryLimit, req.Port)
 	for _, env := range optimizedEnvs {
 		options = append(options, unit.NewUnitOption("Service", "Environment", fmt.Sprintf("%s=%s", env.Key, env.Value)))
 	}
@@ -608,11 +642,23 @@ func (r *projectRepo) updateUnitFile(name string, req *request.ProjectUpdate) er
 	if req.ProtectSystem != "" {
 		options = append(options, unit.NewUnitOption("Service", "ProtectSystem", req.ProtectSystem))
 	}
-	for _, v := range req.ReadWritePaths {
-		options = append(options, unit.NewUnitOption("Service", "ReadWritePaths", v))
-	}
-	for _, v := range req.ReadOnlyPaths {
-		options = append(options, unit.NewUnitOption("Service", "ReadOnlyPaths", v))
+	// ReadWritePaths/ReadOnlyPaths trigger mount namespace setup on their own.
+	// Only apply them when at least one namespace isolation option is active to
+	// avoid "Failed to set up mount namespacing" on unsupported environments.
+	namespaceActive := req.ProtectHome || req.ProtectSystem != "" || req.ProtectTmp
+	if namespaceActive {
+		rwPaths := req.ReadWritePaths
+		// Ensure the working directory is always writable under isolation so
+		// paths like /home/www are not blocked by ProtectHome/ProtectSystem.
+		if req.WorkingDir != "" && !lo.Contains(rwPaths, req.WorkingDir) {
+			rwPaths = append([]string{req.WorkingDir}, rwPaths...)
+		}
+		for _, v := range rwPaths {
+			options = append(options, unit.NewUnitOption("Service", "ReadWritePaths", v))
+		}
+		for _, v := range req.ReadOnlyPaths {
+			options = append(options, unit.NewUnitOption("Service", "ReadOnlyPaths", v))
+		}
 	}
 
 	// [Install] section

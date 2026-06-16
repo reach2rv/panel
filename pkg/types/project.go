@@ -45,6 +45,7 @@ type ProjectDetail struct {
 	Memory      int64   `json:"memory"`       // 内存使用（字节）
 	CPU         float64 `json:"cpu"`          // CPU使用率
 	Uptime      string  `json:"uptime"`       // 运行时间
+	Port        uint    `json:"port"`         // 监听端口（dotnet/node等）
 	MemoryLimit float64 `json:"memory_limit"` // 内存限制（字节）
 	CPUQuota    float64 `json:"cpu_quota"`    // CPU限制（百分比）
 
